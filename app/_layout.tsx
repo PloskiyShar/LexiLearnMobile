@@ -1,34 +1,31 @@
+import React from "react";
 import { Stack } from "expo-router";
+import { ThemeProvider } from "../src/theme/theme";
+import { lightTheme, darkTheme, Box } from "../src/theme/theme";
+import { useThemeStore } from "../src/store/theme";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TamaguiProvider, Theme, YStack } from "tamagui";
-import config from "../tamagui.config";
-import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "react-native";
 
 const qc = new QueryClient();
 
-export default function RootLayout() {
-  const scheme = "dark";
-  const isDark = true; // default to dark if unknown
-  const BG = isDark ? "#0B0B0B" : "#FFFFFF";
+function Shell() {
+  const { top } = useSafeAreaInsets();
+  return (
+    <Box flex={1} bg="background" style={{ paddingTop: top }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" } }} />
+    </Box>
+  );
+}
 
+export default function RootLayout() {
+  const mode = useThemeStore((s) => s.mode);
   return (
     <QueryClientProvider client={qc}>
-      <TamaguiProvider config={config} defaultTheme={isDark ? "dark" : "light"}>
-        <Theme name={isDark ? "dark" : "light"}>
-          {/* Theme-aware screen background */}
-          <YStack f={1} bg="$background">
-            <StatusBar style={isDark ? "light" : "dark"} backgroundColor={BG} />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                // important: gives every screen the same bg as Tamagui
-                contentStyle: { backgroundColor: BG },
-              }}
-            />
-          </YStack>
-        </Theme>
-      </TamaguiProvider>
+      <ThemeProvider theme={mode === "dark" ? darkTheme : lightTheme}>
+        <SafeAreaProvider>
+          <Shell />
+        </SafeAreaProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

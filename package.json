@@ -16,7 +16,9 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
+    "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/native": "^7.1.6",
+    "@shopify/restyle": "^2.4.5",
     "@tamagui/button": "1.132.16",
     "@tamagui/card": "1.132.16",
     "@tamagui/core": "1.132.16",
@@ -26,6 +28,7 @@
     "@tamagui/theme": "1.132.16",
     "@tamagui/themes": "1.132.16",
     "@tanstack/react-query": "^5.84.2",
+    "culori": "^4.0.2",
     "expo": "~53.0.20",
     "expo-font": "~13.3.2",
     "expo-linear-gradient": "^14.1.5",
@@ -42,10 +45,11 @@
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
-    "react-native-svg": "^15.12.1",
+    "react-native-svg": "15.11.2",
     "react-native-web": "~0.20.0",
     "tamagui": "1.132.16",
-    "zustand": "^5.0.7"
+    "zustand": "^5.0.7",
+    "@babel/core": "^7.26.0"
   },
   "devDependencies": {
     "@babel/core": "7.16.0",
@@ -54,6 +58,7 @@
     "@babel/runtime": "^7.28.2",
     "@react-native/eslint-config": "^0.80.2",
     "@tamagui/babel-plugin": "^1.132.16",
+    "@types/culori": "^4.0.0",
     "@types/react": "~19.0.10",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "eslint": "^8.57.1",
