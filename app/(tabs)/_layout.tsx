@@ -1,21 +1,22 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { useTheme } from "@/src/theme/theme";
+import CustomTabBar from "@/components/CustomTabBar";
 
 export default function TabsLayout() {
-  const theme = useTheme();
+  const t = useTheme();
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        sceneContainerStyle: { backgroundColor: theme.colors.background },
-        tabBarStyle: { backgroundColor: theme.colors.background, borderTopColor: theme.colors.border },
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.mutedForeground,
+        // Let screens paint their own bg
+        sceneContainerStyle: { backgroundColor: t.colors.background },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "Home" }} />
-      <Tabs.Screen name="settings" options={{ title: "Settings" }} />
+      <Tabs.Screen name="index" />
+       <Tabs.Screen name="exchange" />
+      <Tabs.Screen name="settings" />
     </Tabs>
   );
 }

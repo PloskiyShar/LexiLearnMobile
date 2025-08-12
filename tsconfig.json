@@ -1,18 +1,25 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "target": "ES2020",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
     "strict": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@store/*": ["src/store/*"]
-    }
+      "@/*": ["./*"],
+      "src/*": ["src/*"]
+    },
+    "typeRoots": ["./src/types", "./node_modules/@types"]
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
+    "app/**/*",
+    "src/**/*",
     "expo-env.d.ts"
-  ]
+  ],
+  "exclude": ["node_modules"]
 }

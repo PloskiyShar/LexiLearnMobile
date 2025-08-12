@@ -1,37 +1,41 @@
-import React from "react";
-import { Box, Text, useTheme } from "../../src/theme/theme";
-import { LinearGradient } from "expo-linear-gradient";
-
-const Card: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const t = useTheme();
-  return (
-    <Box bg="card" borderWidth={1} borderColor="border" borderRadius="xl" p="md">{children}</Box>
-  );
-};
+import React, { useMemo } from "react";
+import { router } from "expo-router";
+import { Box, Text } from "../../src/theme/theme";
+import Card from "../../src/components/Card";
+import ProgressBar from "../../src/components/ProgressBar";
+import { useBooks } from "../../src/store/books";
 
 export default function Home() {
-  const t = useTheme();
+  const { books, currentId, reviews } = useBooks();
+  const current = currentId ? books[currentId] : undefined;
+  const due = useMemo(() => reviews.filter(r => r.dueAt <= Date.now()).length, [reviews]);
+
   return (
-    <Box flex={1} bg="background">
-      {/* rounded gradient header */}
-      <Box height={220} borderBottomLeftRadius="xl" borderBottomRightRadius="xl" overflow="hidden">
-        <LinearGradient
-          colors={[t.colors.background, t.colors.primary, t.colors.background]}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ flex: 1 }}
-        />
-      </Box>
+    <Box flex={1} bg="background" padding="md" gap="md">
+      {/* 1) Currently reading */}
+      <Card
+        title={current ? current.title : "No book selected"}
+        subtitle={current ? "Continue reading" : "Pick a book to start"}
+        onPress={() => current && router.push(`/reading/${current.id}`)}
+        right={current ? <Text color="mutedForeground">{Math.round((current.progress || 0)*100)}%</Text> : null}
+      >
+        {current ? <Box marginTop="sm"><ProgressBar value={current.progress} /></Box> : null}
+      </Card>
 
-      <Box p="md" gap="md">
-        <Card>
-          <Text variant="muted">Movement Index</Text>
-          <Text variant="heading">58</Text>
-        </Card>
+      {/* 2) Add new book */}
+      <Card
+        title="Add a new book"
+        subtitle="Import from your phone"
+        onPress={() => router.push("/add-book")}
+        right={<Text color="primary">+</Text>}
+      />
 
-        <Text variant="muted" marginTop="md">Timeline</Text>
-        <Card><Text>Stress</Text></Card>
-        <Card><Text>Plain Yogurt, Strawberries</Text></Card>
-      </Box>
+      {/* 3) Words to review */}
+      <Card
+        title="Words & phrases to review"
+        subtitle={due ? `${due} due` : "You're all caught up"}
+        onPress={() => router.push("/review")}
+      />
     </Box>
   );
 }

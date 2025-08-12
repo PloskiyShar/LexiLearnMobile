@@ -1,10 +1,15 @@
 import React from "react";
 import { Stack } from "expo-router";
-import { ThemeProvider } from "../src/theme/theme";
-import { lightTheme, darkTheme, Box } from "../src/theme/theme";
-import { useThemeStore } from "../src/store/theme";
+import { ThemeProvider } from "@shopify/restyle";
+import { lightTheme, darkTheme, Box } from "src/theme/theme";
+import { useThemeStore } from "src/store/theme";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {StatusBar} from "react-native";
+import Toast from "react-native-toast-message";
+import 'react-native-url-polyfill/auto';
+import HydrationGate from "src/components/HydrationGate";
+
 
 const qc = new QueryClient();
 
@@ -20,12 +25,19 @@ function Shell() {
 export default function RootLayout() {
   const mode = useThemeStore((s) => s.mode);
   return (
-    <QueryClientProvider client={qc}>
-      <ThemeProvider theme={mode === "dark" ? darkTheme : lightTheme}>
-        <SafeAreaProvider>
-          <Shell />
-        </SafeAreaProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <HydrationGate>
+      <QueryClientProvider client={qc}>
+        <ThemeProvider theme={mode === "dark" ? darkTheme : lightTheme}>
+          <StatusBar
+            barStyle={mode !== "dark" ? "dark-content" : "light-content"}
+            backgroundColor={mode !== "dark" ? "#fff" : "#000"}
+          />
+          <SafeAreaProvider>
+            <Shell />
+          </SafeAreaProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+      <Toast />
+    </HydrationGate>
   );
 }

@@ -27,6 +27,7 @@ const lightRaw = {
   destructive: "oklch(0.4437 0.1613 26.8994)",
   destructiveForeground: "oklch(1 0 0)",
   border: "oklch(0.8866 0.0404 89.6994)",
+  transparent: "transparent"
 };
 const darkRaw = {
   background: "oklch(0.2161 0.0061 56.0434)",
@@ -44,6 +45,7 @@ const darkRaw = {
   destructive: "oklch(0.5771 0.2152 27.3250)",
   destructiveForeground: "oklch(1 0 0)",
   border: "oklch(0.3741 0.0087 67.5582)",
+  transparent: "transparent"
 };
 
 const L = Object.fromEntries(Object.entries(lightRaw).map(([k, v]) => [k, hex(v)])) as Record<string, string>;
