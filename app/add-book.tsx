@@ -8,8 +8,6 @@ import * as FileSystem from 'expo-file-system';
 import Toast from 'react-native-toast-message';
 import { useBooks } from '../src/store/books';
 import { parseEpubFromBase64 } from '../src/lib/epub';
-// ❌ remove: import { parsePdfFromBase64 } from '../src/lib/pdf';
-import FullScreenLoader from '../src/components/FullScreenLoader';
 
 export default function AddBook() {
   const { upsertBook, setCurrent } = useBooks();
@@ -18,6 +16,7 @@ export default function AddBook() {
   const pick = async () => {
     try {
       setLoading(true);
+
       const res = await DocumentPicker.getDocumentAsync({
         type: ['text/plain', 'application/epub+zip', '*/*'],
         copyToCacheDirectory: true,
@@ -25,25 +24,27 @@ export default function AddBook() {
       if (res.canceled || !res.assets?.[0]) return;
 
       const asset = res.assets[0];
-      const name = asset.name?.toLowerCase() ?? '';
-      const mime = asset.mimeType?.toLowerCase() ?? '';
       const id = String(Date.now());
-      let content = '';
+      let text = '';
 
-      if (mime === 'text/plain' || name.endsWith('.txt')) {
-        content = await FileSystem.readAsStringAsync(asset.uri, { encoding: 'utf8' });
-      } else if (mime === 'application/epub+zip' || name.endsWith('.epub')) {
+      // Parse file
+      if (asset.mimeType === 'text/plain' || asset.name?.toLowerCase().endsWith('.txt')) {
+        text = await FileSystem.readAsStringAsync(asset.uri, { encoding: 'utf8' });
+      } else if (asset.mimeType === 'application/epub+zip' || asset.name?.toLowerCase().endsWith('.epub')) {
         const b64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 });
-        content = await parseEpubFromBase64(b64);
-      } else if (name.endsWith('.pdf') || mime === 'application/pdf') {
-        Toast.show({ type: 'error', text1: 'PDF not supported (yet)' });
-        return;
+        text = await parseEpubFromBase64(b64);
       } else {
-        Toast.show({ type: 'error', text1: 'Unsupported file', text2: 'Use .txt or .epub' });
-        return;
+        throw new Error('Unsupported file type (use .txt or .epub)');
       }
 
-      upsertBook({ id, title: asset.name ?? 'Imported Book', content, progress: 0 });
+      // ✅ Always store actual content so reader sees it
+      upsertBook({
+        id,
+        title: asset.name ?? 'Imported Book',
+        content: text,
+        progress: 0,
+      });
+
       setCurrent(id);
       Toast.show({ type: 'success', text1: 'Imported', text2: asset.name ?? 'Book ready' });
       router.replace(`/reading/${id}`);
@@ -58,14 +59,13 @@ export default function AddBook() {
     <>
       <Stack.Screen options={{ title: 'Add Book' }} />
       <Box flex={1} bg="background" padding="md" gap="md">
-        <Text>Pick a .txt or .epub file.</Text>
+        <Text>Pick a text or EPUB file.</Text>
         <TouchableOpacity onPress={pick} disabled={loading} style={{ paddingVertical: 12 }}>
           <Box bg="primary" borderRadius="md" padding="md" alignItems="center" opacity={loading ? 0.6 : 1}>
             <Text color="background">{loading ? 'Importing…' : 'Choose file'}</Text>
           </Box>
         </TouchableOpacity>
       </Box>
-      <FullScreenLoader visible={loading} />
     </>
   );
 }

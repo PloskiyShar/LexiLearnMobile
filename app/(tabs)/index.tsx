@@ -4,6 +4,7 @@ import { Box, Text } from "../../src/theme/theme";
 import Card from "../../src/components/Card";
 import ProgressBar from "../../src/components/ProgressBar";
 import { useBooks } from "../../src/store/books";
+import {TouchableOpacity} from "react-native";
 
 export default function Home() {
   const { books, currentId, reviews } = useBooks();
@@ -13,6 +14,10 @@ export default function Home() {
   return (
     <Box flex={1} bg="background" padding="md" gap="md">
       {/* 1) Currently reading */}
+      <TouchableOpacity
+        disabled={!current}
+        onPress={() => current && router.push(`/reading/${current.id}`)}
+      >
       <Card
         title={current ? current.title : "No book selected"}
         subtitle={current ? "Continue reading" : "Pick a book to start"}
@@ -21,7 +26,7 @@ export default function Home() {
       >
         {current ? <Box marginTop="sm"><ProgressBar value={current.progress} /></Box> : null}
       </Card>
-
+      </TouchableOpacity>
       {/* 2) Add new book */}
       <Card
         title="Add a new book"
