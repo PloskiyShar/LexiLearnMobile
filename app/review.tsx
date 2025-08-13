@@ -1,17 +1,25 @@
 import React from "react";
-import { Box, Text } from "../src/theme/theme";
+import {Box, Text, useTheme} from "../src/theme/theme";
 import { Stack } from "expo-router";
 import { useBooks } from "../src/store/books";
+import BackButton from "src/components/BackButton";
 
 export default function Review() {
   const { popDue } = useBooks();
   const [item, setItem] = React.useState(() => popDue());
+  const theme = useTheme();
 
   const next = () => setItem(popDue());
 
   return (
     <>
-      <Stack.Screen options={{ title: "Review" }} />
+      <Stack.Screen options={{ title: "Review",
+        headerBackground: () => (
+          <Box flex={1} bg="background" />
+        ) ,
+        headerTintColor: theme.colors.foreground,
+        headerShown: true,
+        headerLeft: () => <BackButton />, }} />
       <Box flex={1} bg="background" padding="md" gap="lg" justifyContent="center">
         {item ? (
           <>

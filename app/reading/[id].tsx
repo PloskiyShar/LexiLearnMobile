@@ -4,6 +4,7 @@ import { ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-nativ
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Box, Text, useTheme } from '../../src/theme/theme';
 import { useBooks } from '../../src/store/books';
+import BackButton from "src/components/BackButton";
 
 export default function ReaderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -86,7 +87,13 @@ export default function ReaderScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: book.title }} />
+      <Stack.Screen options={{ title: book.title || "Reading",
+        headerBackground: () => (
+          <Box flex={1} bg="background" />
+        ) ,
+        headerTintColor: theme.colors.foreground,
+        headerShown: true,
+        headerLeft: () => <BackButton />, }} />
       <Box flex={1} bg="background" onLayout={onLayout}>
         <ScrollView
           ref={scrollRef}

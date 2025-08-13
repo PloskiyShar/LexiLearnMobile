@@ -2,16 +2,18 @@
 import React from 'react';
 import { Stack, router } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
-import { Box, Text } from '../src/theme/theme';
+import {Box, Text, useTheme} from '../src/theme/theme';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import Toast from 'react-native-toast-message';
 import { useBooks } from '../src/store/books';
 import { parseEpubFromBase64 } from '../src/lib/epub';
+import BackButton from "src/components/BackButton";
 
 export default function AddBook() {
   const { upsertBook, setCurrent } = useBooks();
   const [loading, setLoading] = React.useState(false);
+  const theme = useTheme();
 
   const pick = async () => {
     try {
@@ -57,7 +59,13 @@ export default function AddBook() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Add Book' }} />
+      <Stack.Screen options={{ title: "Add book",
+        headerBackground: () => (
+          <Box flex={1} bg="background" />
+        ) ,
+        headerTintColor: theme.colors.foreground,
+        headerShown: true,
+        headerLeft: () => <BackButton />, }} />
       <Box flex={1} bg="background" padding="md" gap="md">
         <Text>Pick a text or EPUB file.</Text>
         <TouchableOpacity onPress={pick} disabled={loading} style={{ paddingVertical: 12 }}>
