@@ -21,6 +21,7 @@ export type Book = {
     chapter?: number;   // your own notion of chapter
     offset?: number;    // character/word offset in text
   };
+  updatedAt?: number;
   wordCount?: number;
   lastOpenedAt?: number;
 };
@@ -41,7 +42,7 @@ type BooksState = {
   upsertBook: (b: Book) => void;
   updateProgress: (id: string, p: number) => void;
   setLocation: (id: string, loc: Book['location']) => void;
-  removeBook: (id: string) => Promise<void>;
+  removeBook: (id: string) => void;
 
   // create + IO
   createFromText: (args: {
@@ -109,22 +110,12 @@ export const useBooks = create<BooksState>()(
           return { books: { ...s.books, [id]: { ...prev, location: { ...prev.location, ...loc } } } };
         }),
 
-      removeBook: async (id) => {
-        const { books } = get();
-        const b = books[id];
-        if (b?.fileUri) {
-          try {
-            const info = await FileSystem.getInfoAsync(b.fileUri);
-            if (info.exists) await FileSystem.deleteAsync(b.fileUri, { idempotent: true });
-          } catch {}
-        }
+      removeBook: (id: string) =>
         set((s) => {
-          const next = { ...s.books };
-          delete next[id];
-          const currentId = s.currentId === id ? undefined : s.currentId;
-          return { books: next, currentId };
-        });
-      },
+          const copy = { ...s.books };
+          delete copy[id];
+          return { books: copy };
+        }),
 
       createFromText: async ({ title, author, text, kind = 'text' }) => {
         await ensureBooksDir();

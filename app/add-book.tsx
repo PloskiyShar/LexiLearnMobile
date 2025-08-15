@@ -38,7 +38,19 @@ export default function AddBook() {
       } else {
         throw new Error('Unsupported file type (use .txt or .epub)');
       }
+      const store = useBooks.getState();
+      const alreadyExists = Object.values(store.books).some(
+        (b) => b.title.trim().toLowerCase() === (asset.name ?? '').trim().toLowerCase()
+      );
 
+      if (alreadyExists) {
+        Toast.show({
+          type: 'error',
+          text1: 'Duplicate book',
+          text2: 'This book is already in your library.',
+        });
+        return;
+      }
       // ✅ Always store actual content so reader sees it
       upsertBook({
         id,

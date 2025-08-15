@@ -7,27 +7,27 @@ import { Box, Text, useTheme } from "@/src/theme/theme";
 import type { Theme } from "@/src/theme/theme";
 import { TouchableOpacity } from "react-native";
 
+const isOutlined = (name: string, isFocused: boolean, customName: string = '') => {
+  return `${customName || name}${!isFocused ? "-outline" : ""}`
+}
 
-const iconFor = (name: string) => {
+const iconFor = (name: string, isFocused: boolean) => {
   switch (name) {
     case "index":
-      return "home-outline";
+      return isOutlined(name, isFocused, "home");
     case "stats":
-      return "stats-chart-outline";
-    case "exchange":
-      return "swap-horizontal-outline";
-    case "wallet":
-      return "wallet-outline";
+      return isOutlined(name, isFocused);
+    case "books":
+      return isOutlined(name, isFocused, "book");
     case "settings":
-      return "settings-outline";
+      return isOutlined(name, isFocused);
     default:
-      return "ellipse-outline";
+      return isOutlined(name, isFocused);
   }
 };
 
 export default function CustomTabBar({
                                        state,
-                                       descriptors,
                                        navigation,
                                      }: BottomTabBarProps) {
   const t = useTheme();
@@ -36,8 +36,6 @@ export default function CustomTabBar({
   // use theme KEYS (Restyle expects keys, not hex)
   const bgKey: keyof Theme["colors"] = "card";
   const borderKey: keyof Theme["colors"] = "border";
-  const activeKey: keyof Theme["colors"] = "primary";
-  const fgKey: keyof Theme["colors"] = "mutedForeground";
 
   return (
     <Box
@@ -84,7 +82,7 @@ export default function CustomTabBar({
               borderRadius="xl" // keep pill look
             >
               <Ionicons
-                name={iconFor(route.name)}
+                name={iconFor(route.name, isFocused)}
                 size={28}
                 color={isFocused ? t.colors.background : t.colors.mutedForeground}
               />

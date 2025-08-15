@@ -67,6 +67,7 @@
     "@babel/plugin-transform-runtime": "7.16.0",
     "@babel/runtime": "^7.28.2",
     "@react-native/eslint-config": "^0.80.2",
+    "@react-native-community/cli": "latest",
     "@tamagui/babel-plugin": "^1.132.16",
     "@types/culori": "^4.0.0",
     "@types/react": "~19.0.10",
