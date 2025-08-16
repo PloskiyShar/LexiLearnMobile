@@ -1,43 +1,41 @@
 import React from "react";
-import {Box, Text, useTheme} from "../src/theme/theme";
 import { Stack } from "expo-router";
 import { useBooks } from "../src/store/books";
 import BackButton from "src/components/BackButton";
+import {ScrollView, Text, View} from "react-native";
+import {getColor} from "src/theme/getColor";
 
 export default function Review() {
   const { popDue } = useBooks();
   const [item, setItem] = React.useState(() => popDue());
-  const theme = useTheme();
+  const { books, setCurrent, updateProgress, setLocation } = useBooks() as any;
+  const book = books?.[1755253839610] || undefined;
+
 
   const next = () => setItem(popDue());
 
   return (
     <>
-      <Stack.Screen options={{ title: "Review",
-        headerBackground: () => (
-          <Box flex={1} bg="background" />
-        ) ,
-        headerTintColor: theme.colors.foreground,
+    <Stack.Screen
+      options={{
+        title: 'Review',
+        headerLargeTitle: false,
+        headerShadowVisible: false,
+        headerTintColor: getColor('label', '#345555', '#555555'),
+        headerTransparent: false,
+        headerStyle: { backgroundColor: getColor('systemBackground', '#fff', '#000') },
         headerShown: true,
-        headerLeft: () => <BackButton />, }} />
-      <Box flex={1} bg="background" padding="md" gap="lg" justifyContent="center">
-        {item ? (
-          <>
-            <Text variant="heading">{item.text}</Text>
-            {!!item.context && <Text color="mutedForeground">{item.context}</Text>}
-            <Box flexDirection="row" gap="md">
-              <Box asChild>
-                <Text onPress={next} bg="primary" color="background" padding="md" borderRadius="md">Know it</Text>
-              </Box>
-              <Box asChild>
-                <Text onPress={next} bg="card" color="foreground" padding="md" borderRadius="md" style={{ borderWidth: 1 }} borderColor="border">Again</Text>
-              </Box>
-            </Box>
-          </>
-        ) : (
-          <Text color="mutedForeground">Nothing due right now.</Text>
-        )}
-      </Box>
+        headerLeft: () => <BackButton />,
+      }}
+    />
+    <View>
+      <ScrollView>
+          <Text style={{color: '#fff'}}>
+            {"nothing to see here yet"}
+          </Text>
+      </ScrollView>
+    </View>
+
     </>
   );
 }

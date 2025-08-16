@@ -1,11 +1,11 @@
 // src/components/BackButton.tsx
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import {TouchableOpacity, View, Text, StyleSheet} from 'react-native';
 import { router } from 'expo-router';
-import { Box, Text, useTheme } from '../theme/theme';
+import {useIOSColors} from "src/theme/useIOSColor";
 
 export default function BackButton() {
-  const theme = useTheme();
+  const c = useIOSColors()
 
   return (
     <TouchableOpacity
@@ -15,12 +15,12 @@ export default function BackButton() {
       accessibilityRole="button"
       accessibilityLabel="Go back"
     >
-      <Box bg="background" flexDirection="row" alignItems="center" paddingHorizontal="sm" paddingVertical="xs">
+      <View style={{display: 'flex', flexDirection: 'row'}}>
         {/* simple chevron + label; swap for an icon if you like */}
-        <Text color={theme.colors.text} fontSize={16} lineHeight={24}>{'‹'}</Text>
-        <Box width={6} />
-        <Text color={theme.colors.text} fontSize={16} lineHeight={24}>Back</Text>
-      </Box>
+        <Text style={{color: c.tint, fontSize: 30, lineHeight: 30}}>{'‹'}</Text>
+        <Text style={{color: c.tint, fontSize: 18, lineHeight: 28}}>{' Back'}</Text>
+      </View>
     </TouchableOpacity>
   );
 }
+

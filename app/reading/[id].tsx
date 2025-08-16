@@ -1,55 +1,35 @@
 // app/reading/[id].tsx
 import * as React from 'react';
-import { ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, NativeSyntheticEvent, NativeScrollEvent, Platform, PlatformColor, Appearance } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { Box, Text, useTheme } from '../../src/theme/theme';
 import { useBooks } from '../../src/store/books';
 import BackButton from "src/components/BackButton";
+import {getColor} from "src/theme/getColor";
+import {useIOSColors} from "src/theme/useIOSColor";
 
 export default function ReaderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { books, setCurrent, updateProgress, setLocation } = useBooks() as any;
-  const theme = useTheme();
+  const c = useIOSColors()
 
-  // book + content from store only
   const book = id ? books?.[id] : undefined;
-  const content = (book?.content ?? '') as string;
+  const content = typeof book?.content === 'string' ? book.content : '';
 
-  // sizes for restore
+  const scrollRef = React.useRef<ScrollView>(null);
   const [layoutH, setLayoutH] = React.useState(0);
   const [contentH, setContentH] = React.useState(0);
-  const scrollRef = React.useRef<ScrollView>(null);
   const restoredRef = React.useRef(false);
 
-  // mark current
   React.useEffect(() => {
     if (id) setCurrent(id);
   }, [id, setCurrent]);
 
-  // log if content missing
-  React.useEffect(() => {
-    if (!book) return;
-    if (!content || content.trim().length === 0) {
-      console.warn(`[Reader] Empty content for book "${book.title}" (id=${book.id}). Did you store 'content' when importing?`);
-    }
-  }, [book, content]);
-
-  // try to restore scroll (once)
   const tryRestore = React.useCallback(() => {
-    if (!book || restoredRef.current) return;
-    if (!layoutH || !contentH) return;
-
+    if (!book || restoredRef.current || !layoutH || !contentH) return;
     const denom = Math.max(1, contentH - layoutH);
     const savedOffset = typeof book.location?.offset === 'number' ? book.location.offset : undefined;
     const fromProgress = typeof book.progress === 'number' ? book.progress * denom : 0;
-
-    let y = 0;
-    if (typeof savedOffset === 'number' && isFinite(savedOffset)) {
-      y = Math.max(0, Math.min(savedOffset, denom));
-    } else {
-      y = Math.max(0, Math.min(fromProgress, denom));
-    }
-
+    const y = Math.max(0, Math.min(typeof savedOffset === 'number' ? savedOffset : fromProgress, denom));
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ y, animated: false });
       restoredRef.current = true;
@@ -60,10 +40,6 @@ export default function ReaderScreen() {
     tryRestore();
   }, [tryRestore, content]);
 
-  const onLayout = (e: any) => setLayoutH(e.nativeEvent.layout.height);
-  const onContentSizeChange = (_w: number, h: number) => setContentH(h);
-
-  // save progress + pixel offset
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (!book) return;
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
@@ -77,36 +53,53 @@ export default function ReaderScreen() {
   if (!book) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Reading', headerShown: true }} />
-        <Box flex={1} alignItems="center" justifyContent="center">
-          <Text>No book found.</Text>
-        </Box>
+        <Stack.Screen options={{ title: 'Reading' }} />
+        <View style={[styles.center, { backgroundColor: getColor('systemBackground', '#fff', '#000') }]}>
+          <Text style={{ color: getColor('secondaryLabel', '#666', '#aaa') }}>No book found.</Text>
+        </View>
       </>
     );
   }
 
   return (
     <>
-      <Stack.Screen options={{ title: book.title || "Reading",
-        headerBackground: () => (
-          <Box flex={1} bg="background" />
-        ) ,
-        headerTintColor: theme.colors.foreground,
-        headerShown: true,
-        headerLeft: () => <BackButton />, }} />
-      <Box flex={1} bg="background" onLayout={onLayout}>
+      <Stack.Screen
+        options={{
+          title: book.title ?? 'Reading',
+          headerLargeTitle: false,
+          headerShadowVisible: false,
+          headerTintColor: c.label as any,
+          headerTransparent: false,
+          headerStyle: { backgroundColor: c.background },
+          headerShown: true,
+          headerLeft: () => <BackButton />,
+        }}
+      />
+      <View
+        style={[styles.container, { backgroundColor: c.background, color: c.label }]}
+        onLayout={(e) => setLayoutH(e.nativeEvent.layout.height)}
+      >
         <ScrollView
           ref={scrollRef}
-          onContentSizeChange={onContentSizeChange}
-          style={{ flex: 1, padding: 16 }}
           onScroll={onScroll}
-          scrollEventThrottle={200}
+          scrollEventThrottle={16}
+          onContentSizeChange={(_w, h) => setContentH(h)}
+          contentContainerStyle={styles.readerContent}
         >
-          <Text color={theme.colors.text} fontSize={16} lineHeight={24}>
-            {book?.content || 'No content available.'}
+          <Text style={{
+            color: c.label,
+            fontSize: 18,
+          }}>
+            {book.content || 'No content available.'}
           </Text>
         </ScrollView>
-      </Box>
+      </View>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 , fontSize: 50 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  readerContent: { paddingHorizontal: 18, paddingVertical: 16 },
+});

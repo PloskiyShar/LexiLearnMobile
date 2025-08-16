@@ -1,46 +1,62 @@
-import React, { useMemo } from "react";
-import { router } from "expo-router";
-import { Box, Text } from "../../src/theme/theme";
-import Card from "../../src/components/Card";
-import ProgressBar from "../../src/components/ProgressBar";
-import { useBooks } from "../../src/store/books";
-import {TouchableOpacity} from "react-native";
+// app/index.tsx
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Stack, router } from 'expo-router';
+import { useBooks } from 'src/store/books';
+import Cell from 'src/ios/Cell';
+import {useIOSColors} from "src/theme/useIOSColor";
 
-export default function Home() {
-  const { books, currentId, reviews } = useBooks();
-  const current = currentId ? books[currentId] : undefined;
-  const due = useMemo(() => reviews.filter(r => r.dueAt <= Date.now()).length, [reviews]);
+export default function HomeScreen() {
+  const { books, currentId } = useBooks();
+  const currentBook = currentId ? books[currentId] : undefined;
+  const c = useIOSColors()
 
   return (
-    <Box flex={1} bg="background" padding="md" gap="md">
-      {/* 1) Currently reading */}
-      <TouchableOpacity
-        disabled={!current}
-        onPress={() => current && router.push(`/reading/${current.id}`)}
-      >
-      <Card
-        title={current ? current.title : "No book selected"}
-        subtitle={current ? "Continue reading" : "Pick a book to start"}
-        onPress={() => current && router.push(`/reading/${current.id}`)}
-        right={current ? <Text color="mutedForeground">{Math.round((current.progress || 0)*100)}%</Text> : null}
-      >
-        {current ? <Box marginTop="sm"><ProgressBar value={current.progress} /></Box> : null}
-      </Card>
-      </TouchableOpacity>
-      {/* 2) Add new book */}
-      <Card
-        title="Add a new book"
-        subtitle="Import from your phone"
-        onPress={() => router.push("/add-book")}
-        right={<Text color="primary">+</Text>}
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Home',
+          headerLargeTitle: true,
+          headerTransparent: true,
+          headerBlurEffect: 'regular',
+          headerShadowVisible: false,
+          headerTintColor: c.label as any,
+        }}
       />
-
-      {/* 3) Words to review */}
-      <Card
-        title="Words & phrases to review"
-        subtitle={due ? `${due} due` : "You're all caught up"}
-        onPress={() => router.push("/review")}
-      />
-    </Box>
+      <View style={[styles.screen, { backgroundColor: c.groupedBackground as any }]}>
+        <View style={[styles.group, { backgroundColor: c.secondaryGroupedBackground as any }]}>
+          {currentBook && (<Cell
+            title={currentBook ? currentBook.title : 'Currently Reading'}
+            subtitle={currentBook ? `${Math.round((currentBook.progress ?? 0) * 100)}% read` : 'No book selected'}
+            onPress={() => {
+              if (currentBook) router.push(`/reading/${currentBook.id}`);
+            }}
+          />)}
+          <View style={[styles.sep, {backgroundColor: c.separator as any,}]} />
+          <Cell
+            title="Add New Book"
+            onPress={() => router.push('/add-book')}
+          />
+          <View style={[styles.sep, {backgroundColor: c.separator as any,}]} />
+          <Cell
+            title="Words to Review"
+            onPress={() => router.push('/review')}
+          />
+        </View>
+      </View>
+    </>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, padding: 12 },
+  group: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#00000020',
+  },
+  sep: {
+    height: StyleSheet.hairlineWidth,
+  },
+});

@@ -114,7 +114,7 @@ export const useBooks = create<BooksState>()(
         set((s) => {
           const copy = { ...s.books };
           delete copy[id];
-          return { books: copy };
+          return { books: copy, currentId: s.currentId === id ? undefined : s.currentId };
         }),
 
       createFromText: async ({ title, author, text, kind = 'text' }) => {

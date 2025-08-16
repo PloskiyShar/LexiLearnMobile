@@ -1,19 +1,20 @@
 // app/add-book.tsx
 import React from 'react';
 import { Stack, router } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
-import {Box, Text, useTheme} from '../src/theme/theme';
+import { View, Text, Button, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import Toast from 'react-native-toast-message';
 import { useBooks } from '../src/store/books';
 import { parseEpubFromBase64 } from '../src/lib/epub';
 import BackButton from "src/components/BackButton";
+import {getColor} from "src/theme/getColor";
+import {useIOSColors} from "src/theme/useIOSColor";
 
 export default function AddBook() {
   const { upsertBook, setCurrent } = useBooks();
   const [loading, setLoading] = React.useState(false);
-  const theme = useTheme();
+  const c = useIOSColors()
 
   const pick = async () => {
     try {
@@ -71,21 +72,49 @@ export default function AddBook() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Add book",
-        headerBackground: () => (
-          <Box flex={1} bg="background" />
-        ) ,
-        headerTintColor: theme.colors.foreground,
+      <Stack.Screen options={{
+        title: 'Add Book',
+        headerLargeTitle: false,
+        headerShadowVisible: false,
+        headerTransparent: false,
+        headerBackgroundColor: c.background,
         headerShown: true,
-        headerLeft: () => <BackButton />, }} />
-      <Box flex={1} bg="background" padding="md" gap="md">
-        <Text>Pick a text or EPUB file.</Text>
-        <TouchableOpacity onPress={pick} disabled={loading} style={{ paddingVertical: 12 }}>
-          <Box bg="primary" borderRadius="md" padding="md" alignItems="center" opacity={loading ? 0.6 : 1}>
-            <Text color="background">{loading ? 'Importing…' : 'Choose file'}</Text>
-          </Box>
+        headerLeft: () => <BackButton />,
+      }} />
+      <View style={styles.container}>
+        <Text style={[styles.text, { color: c.label }]}>Choose a book file from your device.</Text>
+
+        <TouchableOpacity
+          onPress={pick}
+          disabled={loading}
+          style={[styles.button, loading && { opacity: 0.6 }, {backgroundColor: c.groupBg}]}
+        >
+          <Text style={[styles.buttonText, { color: c.tint }]}>{loading ? 'Importing…' : 'Choose File'}</Text>
         </TouchableOpacity>
-      </Box>
+      </View>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    // backgroundColor: '#fff', // native white background
+  },
+  text: {
+    fontSize: 20,
+    color: '#fff',
+    marginBottom: 20,
+  },
+  button: {
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#007AFF', // iOS link color
+    fontSize: 17,
+    fontWeight: '600',
+  },
+});

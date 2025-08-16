@@ -1,5 +1,4 @@
 import React from "react";
-import { Box } from "../theme/theme";
 import { ViewStyle } from "react-native";
 
 export default function ProgressBar({ value }: { value: number }) {
