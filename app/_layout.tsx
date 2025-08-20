@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import { Stack } from "expo-router";
 import { ThemeProvider } from "@shopify/restyle";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";

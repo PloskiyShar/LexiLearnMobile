@@ -105,6 +105,10 @@ export default function EpubWebView({
       }
       const word = (window.getSelection() ? window.getSelection().toString() : '').trim();
       if (word) send('word', { word });
+      try {
+          const s = window.getSelection && window.getSelection();
+          if (s && s.removeAllRanges) s.removeAllRanges();
+        } catch (e) {}
     }, 500);
   }, { passive: true });
 

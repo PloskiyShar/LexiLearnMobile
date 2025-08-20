@@ -10,6 +10,7 @@ type Props = {
   onPress?: () => void;
   onLongPress?: () => void;
   accessory?: 'disclosure' | 'none';
+  right?: React.ReactNode;
 };
 
 export default function Cell({
@@ -19,6 +20,7 @@ export default function Cell({
                                onPress,
                                onLongPress,
                                accessory = 'disclosure',
+                               right,
                              }: Props) {
   const c = useIOSColors()
   return (
@@ -36,6 +38,7 @@ export default function Cell({
       </View>
 
       {trailingText ? <Text style={[styles.trailing, {color: c.secondaryLabel as any,}]}>{trailingText}</Text> : null}
+      {right ? <View style={{marginRight: 8}}>{right}</View> : null}
 
       {accessory === 'disclosure' ? <Text style={[styles.chevron, {color: c.tertiaryLabel as any,}]}>›</Text> : null}
     </Pressable>

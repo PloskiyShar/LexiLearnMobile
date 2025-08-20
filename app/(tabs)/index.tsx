@@ -1,15 +1,19 @@
 // app/index.tsx
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import {View, StyleSheet, Text} from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useBooks } from 'src/store/books';
 import Cell from 'src/ios/Cell';
 import {useIOSColors} from "src/theme/useIOSColor";
+import { useReview } from '@/src/store/review';
+
 
 export default function HomeScreen() {
   const { books, currentId } = useBooks();
   const currentBook = currentId ? books[currentId] : undefined;
   const c = useIOSColors()
+  const review = useReview();
+  const dueCount = review.getDueKeys().length;
 
   return (
     <>
@@ -41,6 +45,21 @@ export default function HomeScreen() {
           <Cell
             title="Words to Review"
             onPress={() => router.push('/review')}
+            right={dueCount > 0 ? <View
+              style={{
+                backgroundColor: c.destructive,
+                marginTop: 4,
+                borderRadius: 12,
+                minWidth: 24,
+                paddingHorizontal: 6,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ color: 'white' }}>
+                {dueCount}
+              </Text>
+            </View> : null}
           />
         </View>
       </View>

@@ -6,19 +6,18 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useBooks } from '../../src/store/books';
-import BackButton from "src/components/BackButton";
 import EpubWebView from '../../src/reader/EpubWebView';
 import {useIOSColors} from "src/theme/useIOSColor";
-import ActionSheet from '@expo/react-native-action-sheet';
 
 export default function ReaderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { books, setCurrent, updateProgress, setLocation, addReviews } = useBooks() as any;
   const c = useIOSColors()
+  const ui: 'en'|'ru' = 'en' /* from your settings store */;
+  const textLang: 'en'|'ru' = 'en' /* language of current book */;
 
 
   const book = id ? books?.[id] : undefined;
-  const content = typeof book?.content === 'string' ? book.content : '';
   const restoreY = book?.location?.offset ?? 0;
 
 
@@ -34,8 +33,9 @@ export default function ReaderScreen() {
   );
 
   const onWord = (w: string) => {
-    router.push({ pathname: '/word-sheet', params: { word: w } });
+    router.push({ pathname: `/(modals)/word-sheet/[${w}]`, params: { word: w,  } });
   };
+
   if (!book) {
     return (
       <>
