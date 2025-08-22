@@ -131,7 +131,6 @@ export default function Id() {
     }
   }, [data?.audio, sound, playing]);
 
-  console.log('wordData', data)
   return (
     <>
       <Stack.Screen

@@ -60,7 +60,7 @@ export default function BooksScreen() {
           <View style={[styles.group, { backgroundColor: c.secondaryGroupedBackground as any }]}>
             <Cell
               title={currentBook.title}
-              subtitle={`${Math.round((currentBook.progress ?? 0) * 100)}% read`}
+              subtitle={`${Math.round(100 / currentBook.totalPages * currentBook.currentPage)}% read`}
               onLongPress={() => confirmDelete(currentBook)}
               onPress={() => openBook(currentBook?.id)}
             />
@@ -84,7 +84,7 @@ export default function BooksScreen() {
             renderItem={({ item }) => (
               <Cell
                 title={item.title}
-                subtitle={`${Math.round((item.progress ?? 0) * 100)}% read`}
+                subtitle={`${Math.round(100 / currentBook.totalPages * currentBook.currentPage)}% read`}
                 onPress={() => openBook(item.id)}
                 onLongPress={() => confirmDelete(item.id, item.title)}
               />

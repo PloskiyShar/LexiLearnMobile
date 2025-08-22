@@ -11,25 +11,23 @@ import {useIOSColors} from "src/theme/useIOSColor";
 
 export default function ReaderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { books, setCurrent, updateProgress, setLocation, addReviews } = useBooks() as any;
+  const { books, setCurrent, updateProgress } = useBooks() as any;
   const c = useIOSColors()
   const ui: 'en'|'ru' = 'en' /* from your settings store */;
   const textLang: 'en'|'ru' = 'en' /* language of current book */;
 
 
   const book = id ? books?.[id] : undefined;
-  const restoreY = book?.location?.offset ?? 0;
 
 
   React.useEffect(() => { if (id) setCurrent(id); }, [id, setCurrent]);
 
   const handleProgress = React.useCallback(
-    ({ y, p }: { y: number; p: number }) => {
+    (currentPage) => {
       if (!book) return;
-      updateProgress?.(book.id, Math.max(0, Math.min(1, p)));
-      setLocation?.(book.id, { offset: Math.max(0, y) });
+      updateProgress?.(book.id, currentPage);
     },
-    [book, updateProgress, setLocation]
+    [book, updateProgress]
   );
 
   const onWord = (w: string) => {
@@ -43,19 +41,19 @@ export default function ReaderScreen() {
       </>
     );
   }
-
+  console.log('book', book)
   return (
     <>
       <Stack.Screen options={{ title: book.title }} />
       <EpubWebView
         content={book.content || ''}
-        restoreY={restoreY}
         onWord={onWord}
         onProgress={handleProgress}
         bg={c.background}
         fg={c.label}
-        fontSize={16}
-        lineHeight={24}
+        currentPage={book?.currentPage ?? 1}
+        totalPages={book?.totalPages ?? 1}
+        slicedContent={book?.slicedContent}
       />
     </>
   );

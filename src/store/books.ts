@@ -3,6 +3,16 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
+export function chunkString(str, chunkSize) {
+  const result = [];
+  for (let i = 0; i < str.length; i += chunkSize) {
+    result.push(str.substring(i, i + chunkSize));
+  }
+  return result;
+}
+
+export const fontSize = 16;
+export const lineHeight = 24;
 
 export type ReaderKind = 'text' | 'epub'; // add 'pdf' later if you re-enable it
 
@@ -14,7 +24,9 @@ export type Book = {
   /** Absolute file uri where the book's *plain text* is stored */
   fileUri: string;
   /** 0..1 */
-  progress: number;
+  currentPage: number;
+  totalPages: number;
+  slicedContent: any[];
   /** Optional logical position (useful for EPUBs) */
   location?: {
     cfi?: string;       // EPUB CFI
@@ -40,7 +52,7 @@ type BooksState = {
   // core CRUD
   setCurrent: (id: string | undefined) => void;
   upsertBook: (b: Book) => void;
-  updateProgress: (id: string, p: number) => void;
+  updateProgress: (id: string, currentPage: number) => void;
   setLocation: (id: string, loc: Book['location']) => void;
   removeBook: (id: string) => void;
 
@@ -86,29 +98,22 @@ export const useBooks = create<BooksState>()(
         set((s) => ({
           books: {
             ...s.books,
-            [b.id]: { ...s.books[b.id], ...b }, // this keeps content as well
+            [b.id]: { ...s.books[b.id], ...b,  }, // this keeps content as well
           },
         })),
 
-      updateProgress: (id, p) =>
+      updateProgress: (id, currentPage) =>
         set((s) => {
-          const clamped = Math.min(1, Math.max(0, p));
           const prev = s.books[id];
           if (!prev) return s;
           return {
             books: {
               ...s.books,
-              [id]: { ...prev, progress: clamped, lastOpenedAt: Date.now() },
+              [id]: { ...prev, currentPage, lastOpenedAt: Date.now() },
             },
           };
         }),
 
-      setLocation: (id, loc) =>
-        set((s) => {
-          const prev = s.books[id];
-          if (!prev) return s;
-          return { books: { ...s.books, [id]: { ...prev, location: { ...prev.location, ...loc } } } };
-        }),
 
       removeBook: (id: string) =>
         set((s) => {
@@ -131,7 +136,9 @@ export const useBooks = create<BooksState>()(
           author,
           kind,
           fileUri,
-          progress: 0,
+          currentPage: 1,
+          slicedContent: chunkString(wordCount, 50_000/(fontSize + lineHeight)),
+          totalPages: chunkString(wordCount, 50_000/(fontSize + lineHeight)).length,
           wordCount,
           lastOpenedAt: Date.now(),
         };

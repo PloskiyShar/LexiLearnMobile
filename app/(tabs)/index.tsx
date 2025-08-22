@@ -31,7 +31,7 @@ export default function HomeScreen() {
         <View style={[styles.group, { backgroundColor: c.secondaryGroupedBackground as any }]}>
           {currentBook && (<Cell
             title={currentBook ? currentBook.title : 'Currently Reading'}
-            subtitle={currentBook ? `${Math.round((currentBook.progress ?? 0) * 100)}% read` : 'No book selected'}
+            subtitle={currentBook ? `${Math.round(100 / currentBook.totalPages * currentBook.currentPage)}% read` : 'No book selected'}
             onPress={() => {
               if (currentBook) router.push(`/reading/${currentBook.id}`);
             }}

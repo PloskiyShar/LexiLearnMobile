@@ -1,41 +1,39 @@
 import * as React from 'react';
-import { Platform } from 'react-native';
+import {Button, Platform, Text, View} from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
+import {useIOSColors} from "src/theme/useIOSColor";
 
 type Props = {
   /** Already-parsed book content as a single HTML string or plain text */
   content: string;
   /** Pixel offset to restore (from store) */
-  restoreY?: number;
+  currentPage?: number;
+  totalPages?: number;
+  slicedContent: any[]
   /** Called when user long-presses a word */
   onWord?: (word: string) => void;
-  /** Called with { y, p } as the reader scrolls; p is 0..1 */
-  onProgress?: (payload: { y: number; p: number }) => void;
   /** Background/text colors to match your theme */
+  onProgress?: (page: number) => void;
   bg?: string;
   fg?: string;
-  fontSize?: number;        // e.g. 16
-  lineHeight?: number;      // e.g. 24
 };
 
 export default function EpubWebView({
                                       content,
-                                      restoreY = 0,
-                                      onWord,
                                       onProgress,
+                                      onWord,
+                                      currentPage = 1,
+                                      totalPages = 1,
+                                      slicedContent,
                                       bg = '#FFFFFF',
                                       fg = '#000000',
-                                      fontSize = 16,
-                                      lineHeight = 24,
                                     }: Props) {
   const ref = React.useRef<WebView>(null);
+  const c = useIOSColors()
 
   const html = React.useMemo(() => {
     // If content is plain text, escape and wrap paragraphs
-    const isLikelyHtml = /<\/?[a-z][\s\S]*>/i.test(content);
-    const bodyHtml = isLikelyHtml
-      ? content
-      : content
+    const bodyHtml = slicedContent?.[currentPage - 1]
         .split(/\n{2,}/)
         .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br/>')}</p>`)
         .join('');
@@ -52,8 +50,8 @@ export default function EpubWebView({
   :root {
     --bg: ${bg};
     --fg: ${fg};
-    --sz: ${fontSize}px;
-    --lh: ${lineHeight}px;
+    --sz: ${16}px;
+    --lh: ${24}px;
   }
   html, body {
     background: var(--bg);
@@ -72,7 +70,8 @@ export default function EpubWebView({
   ::selection { background: rgba(255, 204, 0, .35); }
 </style>
 </head>
-<body>${bodyHtml}</body>
+<body id="container">${bodyHtml}</body>
+
 <script>
 (function(){
   const RN = window.ReactNativeWebView;
@@ -115,34 +114,10 @@ export default function EpubWebView({
   document.addEventListener('touchend', () => {
     if (longTimer) { clearTimeout(longTimer); longTimer = null; }
   }, { passive: true });
-
-  // --- Progress reporting (throttled with rAF) ---
-  function report(){
-    const doc = document.documentElement;
-    const denom = Math.max(1, doc.scrollHeight - doc.clientHeight);
-    const y = doc.scrollTop || document.body.scrollTop || 0;
-    const p = y / denom;
-    send('progress', { y, p });
-  }
-  let raf = null;
-  window.addEventListener('scroll', () => {
-    if (raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(report);
-  }, { passive: true });
-
-  // --- Restore on first load ---
-  window.restoreScroll = function(y){
-    document.documentElement.scrollTop = y;
-    document.body.scrollTop = y;
-    report();
-  };
-
-  // Initial report
-  report();
 })();
 </script>
 </html>`;
-  }, [content, bg, fg, fontSize, lineHeight]);
+  }, [content, bg, fg, currentPage]);
 
   const onMessage = React.useCallback(
     (e: WebViewMessageEvent) => {
@@ -150,35 +125,48 @@ export default function EpubWebView({
         const msg = JSON.parse(e.nativeEvent.data);
         if (msg?.type === 'word' && msg.payload?.word && onWord) {
           onWord(msg.payload.word);
-        } else if (msg?.type === 'progress' && msg.payload && onProgress) {
-          onProgress(msg.payload);
         }
       } catch {}
     },
-    [onWord, onProgress]
+    [onWord, currentPage, onProgress]
   );
 
-  const onLoadEnd = React.useCallback(() => {
-    if (restoreY > 0) {
-      // call restoreScroll inside the webview
-      ref.current?.injectJavaScript(`try{ restoreScroll(${Math.max(0, restoreY)}) }catch(e){} true;`);
-    }
-  }, [restoreY]);
 
   return (
-    <WebView
-      ref={ref}
-      originWhitelist={['*']}
-      source={{ html }}
-      onMessage={onMessage}
-      onLoadEnd={onLoadEnd}
-      // the following can reduce bounce/zoom issues
-      bounces={false}
-      showsVerticalScrollIndicator={false}
-      decelerationRate={Platform.OS === 'ios' ? 'normal' : undefined}
-      // important for iOS dark modes if you keep system colors later
-      dataDetectorTypes="none"
-    />
+    <>
+      <WebView
+        ref={ref}
+        originWhitelist={['*']}
+        source={{ html }}
+        onMessage={onMessage}
+        // onLoadEnd={onLoadEnd}
+        // the following can reduce bounce/zoom issues
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
+        decelerationRate={Platform.OS === 'ios' ? 'normal' : undefined}
+        // important for iOS dark modes if you keep system colors later
+        dataDetectorTypes="none"
+      />
+      <View style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        backgroundColor: c.background,
+      }}>
+        <Button title={'Prev'} onPress={() => {
+          if (currentPage === 1 ) return;
+          onProgress?.(currentPage - 1);
+        }} />
+        <Text style={{color: c.tint}}>{currentPage} / {totalPages}</Text>
+        <Button title={'Next'} onPress={() => {
+          if (currentPage === slicedContent?.length) return;
+          onProgress?.(currentPage + 1);
+        }} />
+      </View>
+    </>
   );
 }
 
