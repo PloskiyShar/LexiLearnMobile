@@ -41,7 +41,6 @@ export default function ReaderScreen() {
       </>
     );
   }
-  console.log('book', book)
   return (
     <>
       <Stack.Screen options={{ title: book.title }} />

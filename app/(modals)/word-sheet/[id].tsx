@@ -11,6 +11,114 @@ import {LookupResult, TextLang, UILang} from "src/lookup/types";
 import {useBooks} from "src/store/books";
 import {Audio} from "expo-av";
 import { useReview } from '@/src/store/review';
+// --- Exact WebView-like hues for 0–3; 4 is neutral in the selector ----
+import { useColorScheme } from 'react-native';
+
+const HUES: Record<Level, [number, number, number]> = {
+  0: [255, 59, 48],   // #FF3B30
+  1: [255, 149, 0],   // #FF9500
+  2: [255, 204, 0],   // #FFCC00
+  3: [52, 199, 89],   // #34C759
+  4: [52, 199, 89],   // unused here; level 4 stays neutral
+};
+
+const LIGHT_FILL_ALPHA: Record<Level, number> = { 0: 0.24, 1: 0.22, 2: 0.22, 3: 0.22, 4: 0.00 };
+const DARK_FILL_ALPHA:  Record<Level, number> = { 0: 0.36, 1: 0.34, 2: 0.34, 3: 0.34, 4: 0.00 };
+
+function rgba([r,g,b]: [number,number,number], a: number) { return `rgba(${r},${g},${b},${a})`; }
+function isDarkHex(hex: string) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const R = (n >> 16) & 255, G = (n >> 8) & 255, B = n & 255;
+  return (0.2126*R + 0.7152*G + 0.0722*B) < 128;
+}
+
+type LevelChipProps = {
+  level: Level;
+  label: string;
+  onPress: () => void;
+  selected?: boolean;
+  compact?: boolean;
+};
+
+function LevelChip({ level, label, onPress, selected, compact }: LevelChipProps) {
+  const c = useIOSColors();
+  const schemeIsDark = isDarkHex(c.background);
+
+  // Neutral base for L4
+  const neutralBg   = c.secondaryBackground;
+  const neutralRing = c.separator;
+
+  if (level === 4) {
+    // WELL-KNOWN: no color; emphasize selection via accent outline + checkmark
+    return (
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          {
+            alignSelf: 'flex-start',
+            borderRadius: 8,
+            paddingHorizontal: 6,
+            backgroundColor: neutralBg,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: neutralRing,
+            opacity: pressed ? 0.85 : 1,
+            flexDirection: 'row',
+            gap: 6,
+            alignItems: 'center',
+          },
+        ]}
+      >
+        <Text style={{ fontSize: 16, color: c.label }}>
+          {label}
+        </Text>
+        {selected ? <Text style={{ fontSize: 16, color: c.label }}>✓</Text> : null}
+      </Pressable>
+    );
+  }
+
+  // Levels 0–3 use the same recipe as the WebView (tint) when not selected
+  const hue = HUES[level];
+  const fill = schemeIsDark ? DARK_FILL_ALPHA[level] : LIGHT_FILL_ALPHA[level];
+  const tintBg = rgba(hue, fill);
+  const ring   = schemeIsDark ? 'rgba(255,255,255,0.18)' : rgba(hue, level === 0 ? 0.55 : 0.50);
+
+  // Selected = solid, obvious
+  const solidBg = `rgba(${hue[0]},${hue[1]},${hue[2]},${schemeIsDark ? 0.92 : 1})`;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        {
+          alignSelf: 'flex-start',
+          borderRadius: 8,
+          paddingHorizontal: 6,
+          backgroundColor: tintBg,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: selected ? solidBg : ring,
+          opacity: pressed ? 0.85 : 1,
+          flexDirection: 'row',
+          gap: 6,
+          alignItems: 'center',
+        },
+      ]}
+    >
+      <Text
+        style={{
+          fontSize: 16,
+          includeFontPadding: false,
+          color: c.label,
+        }}
+      >
+        {label}
+      </Text>
+      {selected ? <Text style={{ fontSize: 16, color: c.label }}>✓</Text> : null}
+    </Pressable>
+  );
+}
+
 
 const LEVELS: { value: Level; label: string }[] = [
   { value: 0, label: 'New' },
@@ -193,22 +301,16 @@ export default function Id() {
               )}
 
               {/* knowledge level selector */}
-              <View
-                style={{flexDirection: 'row', gap: 8, alignItems: 'center'}}
-              >
-                {LEVELS.map(l => {
-                  const active = current === l.value
-                  return (
-                    <Pressable
-                      key={l.value}
-                      onPress={() => setLevel(l.value)}
-                    >
-                      <Text style={{color: active ? c.tint : c.label}}>
-                        {l.label}
-                      </Text>
-                    </Pressable>
-                  )
-                })}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                {LEVELS.map(l => (
+                  <LevelChip
+                    key={l.value}
+                    level={l.value}
+                    label={l.label}
+                    selected={current === l.value}
+                    onPress={() => setLevel(l.value)}
+                  />
+                ))}
               </View>
 
               {/* Definitions */}

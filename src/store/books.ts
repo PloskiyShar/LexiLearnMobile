@@ -11,6 +11,7 @@ export function chunkString(str, chunkSize) {
   return result;
 }
 
+export const pageWordHeight = 49_000;
 export const fontSize = 16;
 export const lineHeight = 24;
 
@@ -137,8 +138,8 @@ export const useBooks = create<BooksState>()(
           kind,
           fileUri,
           currentPage: 1,
-          slicedContent: chunkString(wordCount, 50_000/(fontSize + lineHeight)),
-          totalPages: chunkString(wordCount, 50_000/(fontSize + lineHeight)).length,
+          slicedContent: chunkString(wordCount, pageWordHeight/(fontSize + lineHeight)),
+          totalPages: chunkString(wordCount, pageWordHeight/(fontSize + lineHeight)).length,
           wordCount,
           lastOpenedAt: Date.now(),
         };

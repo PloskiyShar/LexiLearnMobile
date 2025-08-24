@@ -5,7 +5,7 @@ import { View, Text, Button, TouchableOpacity, StyleSheet, Alert } from 'react-n
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import Toast from 'react-native-toast-message';
-import {chunkString, fontSize, lineHeight, useBooks} from '../src/store/books';
+import {chunkString, fontSize, lineHeight, pageWordHeight, useBooks} from '../src/store/books';
 import { parseEpubFromBase64 } from '../src/lib/epub';
 import BackButton from "src/components/BackButton";
 import {getColor} from "src/theme/getColor";
@@ -58,8 +58,8 @@ export default function AddBook() {
         title: asset.name ?? 'Imported Book',
         content: text,
         currentPage: 1,
-        slicedContent: chunkString(text, 50_000/(fontSize + lineHeight)),
-        totalPages: chunkString(text, 50_000/(fontSize + lineHeight)).length,
+        slicedContent: chunkString(text, pageWordHeight/(fontSize + lineHeight)),
+        totalPages: chunkString(text, pageWordHeight/(fontSize + lineHeight)).length,
       });
 
       setCurrent(id);
